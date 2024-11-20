@@ -1,0 +1,9 @@
+﻿<Application x:Class="Взаимодействие_приложений_с_Базой_Данных_при_помощи_Microsoft_2.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Взаимодействие_приложений_с_Базой_Данных_при_помощи_Microsoft_2"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>

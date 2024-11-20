@@ -1,0 +1,14 @@
+﻿<Window x:Class="Взаимодействие_приложений_с_Базой_Данных_при_помощи_Microsoft_2.UpdateCategoryWindow"
+       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Обновить категорию" Height="150" Width="300">
+    <Grid>
+        <StackPanel Margin="10">
+            <Label Content="ID категории:" />
+            <TextBox x:Name="txtCategoryID" IsReadOnly="True" Margin="0,5,0,5" />
+            <Label Content="Новое название:" />
+            <TextBox x:Name="txtName" Margin="0,5,0,5" />
+            <Button Content="Обновить" Click="btnUpdate_Click" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>
