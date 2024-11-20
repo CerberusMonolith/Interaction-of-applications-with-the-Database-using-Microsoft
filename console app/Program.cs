@@ -49,30 +49,8 @@ namespace Взаимодействие_приложений_с_Базой_Дан
         static void ShowAllUsers()
         {
             Console.Clear();
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    using (SqlCommand command = new SqlCommand("SELECT UserID, Username, Email, CreatedAt, UpdatedAt FROM [User]", connection))
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        Console.WriteLine("Список пользователей:");
-                        Console.WriteLine("{0,-5} {1,-20} {2,-30} {3,-20} {4,-20}", "ID", "Username", "Email", "CreatedAt", "UpdatedAt");
-                        while (reader.Read())
-                        {
-                            Console.WriteLine("{0,-5} {1,-20} {2,-30} {3,-20} {4,-20}", reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetDateTime(3), reader.GetDateTime(4));
-                        }
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    Console.WriteLine($"Ошибка при работе с базой данных: {ex.Message}");
-                }
-            }
-            Console.ReadKey();
+            DisplayUsers("SELECT UserID, Username, Email, CreatedAt, UpdatedAt FROM [User]");
         }
-
 
         static void AddUser()
         {
@@ -107,14 +85,28 @@ namespace Взаимодействие_приложений_с_Базой_Дан
             Console.ReadKey();
         }
 
-
         static void UpdateUser()
         {
             Console.Clear();
             Console.WriteLine("Обновление пользователя:");
             if (int.TryParse(GetValidInput("Введите ID пользователя:", IsValidUserID), out int userId))
             {
-           
+                string username = GetValidInput("Введите новое имя пользователя (оставьте пустым, чтобы не менять):", s => true);
+                string email = GetValidInput("Введите новый email (оставьте пустым, чтобы не менять):", s => true);
+                string password = GetValidInput("Введите новый пароль (оставьте пустым, чтобы не менять):", s => true);
+
+                string updateSql = $"UPDATE [User] SET ";
+                List<string> updates = new List<string>();
+
+                if (!string.IsNullOrEmpty(username)) updates.Add($"Username = '{username}'");
+                if (!string.IsNullOrEmpty(email)) updates.Add($"Email = '{email}'");
+                if (!string.IsNullOrEmpty(password)) updates.Add($"PasswordHash = '{HashPassword(password)}'");
+
+                updateSql += string.Join(", ", updates);
+                updateSql += $" WHERE UserID = {userId}";
+
+                ExecuteSql(updateSql);
+                Console.WriteLine("Пользователь успешно обновлен!");
             }
             else
             {
@@ -122,7 +114,6 @@ namespace Взаимодействие_приложений_с_Базой_Дан
             }
             Console.ReadKey();
         }
-
 
         static void DeleteUser()
         {
@@ -130,7 +121,8 @@ namespace Взаимодействие_приложений_с_Базой_Дан
             Console.WriteLine("Удаление пользователя:");
             if (int.TryParse(GetValidInput("Введите ID пользователя:", IsValidUserID), out int userId))
             {
-         
+                ExecuteSql($"DELETE FROM [User] WHERE UserID = {userId}");
+                Console.WriteLine("Пользователь успешно удален!");
             }
             else
             {
@@ -140,7 +132,6 @@ namespace Взаимодействие_приложений_с_Базой_Дан
         }
 
 
-        
         static string GetValidInput(string prompt, Func<string, bool> validator)
         {
             string input;
@@ -158,12 +149,11 @@ namespace Взаимодействие_приложений_с_Базой_Дан
         }
 
         static bool IsValidUsername(string username) => !string.IsNullOrWhiteSpace(username);
-        static bool IsValidPassword(string password) => password.Length >= 8; 
+        static bool IsValidPassword(string password) => password.Length >= 8;
         static bool IsValidEmail(string email) => !string.IsNullOrWhiteSpace(email) && email.Contains("@");
         static bool IsValidUserID(string userId) => int.TryParse(userId, out int id) && id > 0;
 
 
-        
         static string HashPassword(string password)
         {
             byte[] salt = GenerateSalt();
@@ -186,6 +176,50 @@ namespace Взаимодействие_приложений_с_Базой_Дан
             using (var rfc2898DeriveBytes = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
             {
                 return rfc2898DeriveBytes.GetBytes(256 / 8);
+            }
+        }
+
+        static void DisplayUsers(string sql)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        Console.WriteLine("Список пользователей:");
+                        Console.WriteLine("{0,-5} {1,-20} {2,-30} {3,-20} {4,-20}", "ID", "Username", "Email", "CreatedAt", "UpdatedAt");
+                        while (reader.Read())
+                        {
+                            Console.WriteLine("{0,-5} {1,-20} {2,-30} {3,-20} {4,-20}", reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetDateTime(3), reader.GetDateTime(4));
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine($"Ошибка при работе с базой данных: {ex.Message}");
+                }
+            }
+        }
+
+        static void ExecuteSql(string sql)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine($"Ошибка при работе с базой данных: {ex.Message}");
+                }
             }
         }
     }
